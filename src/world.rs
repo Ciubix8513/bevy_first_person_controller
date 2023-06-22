@@ -1,3 +1,4 @@
+#![allow(clippy::cast_precision_loss)]
 use bevy::prelude::*;
 
 pub struct World;

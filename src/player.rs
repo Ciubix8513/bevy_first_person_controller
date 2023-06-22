@@ -1,3 +1,4 @@
+#![allow(clippy::module_name_repetitions, clippy::needless_pass_by_value)]
 use bevy::prelude::*;
 
 pub struct PlayerPlugin;
