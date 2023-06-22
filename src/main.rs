@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::CursorGrabMode};
 
 use player::PlayerPlugin;
 use world::World;
@@ -11,5 +11,24 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin)
         .add_plugin(World)
+        .add_system(cursor_unlocker)
         .run();
+}
+
+fn cursor_unlocker(
+    mut window: Query<&mut Window>,
+    key: Res<Input<KeyCode>>,
+    mouse: Res<Input<MouseButton>>,
+) {
+    let mut window = window.single_mut();
+
+    if mouse.just_pressed(MouseButton::Left) {
+        window.cursor.visible = false;
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+    }
+
+    if key.just_pressed(KeyCode::Escape) {
+        window.cursor.visible = true;
+        window.cursor.grab_mode = CursorGrabMode::None;
+    }
 }
