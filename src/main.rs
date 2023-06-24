@@ -1,5 +1,6 @@
 #![allow(clippy::needless_pass_by_value)]
 use bevy::{prelude::*, window::CursorGrabMode};
+use bevy_rapier3d::prelude::*;
 
 use player::PlayerPlugin;
 use world::World;
@@ -10,6 +11,12 @@ mod world;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(RapierDebugRenderPlugin {
+            always_on_top: true,
+            enabled: true,
+            ..Default::default()
+        })
         .add_plugin(PlayerPlugin)
         .add_plugin(World)
         .add_system(cursor_unlocker)
