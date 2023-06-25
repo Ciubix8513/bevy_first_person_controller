@@ -1,7 +1,6 @@
 #![allow(clippy::cast_precision_loss)]
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::Collider;
-use rand::Rng;
 
 pub struct World;
 
@@ -63,8 +62,8 @@ fn setup(
     }
 
     //Some boxes
-    let mut rng = rand::thread_rng();
-    let box_material = materials.add(Color::ANTIQUE_WHITE.into());
+    // let mut rng = rand::thread_rng();
+    // let box_material = materials.add(Color::ANTIQUE_WHITE.into());
     // for _ in 0..0 {
     //     let x = rng.gen_range(1.0..10.0);
     //     let y = rng.gen_range(1.0..10.0);

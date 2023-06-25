@@ -1,21 +1,34 @@
 #![allow(clippy::module_name_repetitions, clippy::needless_pass_by_value)]
-use bevy::{input::mouse::MouseMotion, prelude::*};
-use bevy_rapier3d::prelude::{
-    CharacterAutostep, CharacterLength, Collider, KinematicCharacterController,
-};
+use bevy::{input::mouse::MouseMotion, math::Vec3Swizzles, prelude::*};
+use bevy_rapier3d::prelude::{Collider, RigidBody};
 
 pub struct PlayerPlugin;
 
 #[derive(Component)]
 pub struct PlayerCamera;
 #[derive(Component)]
-pub struct PlayerBundle;
+pub struct FirstPersonController {
+    pub speed: f32,
+    pub jump_force: f32,
+    pub movement_vec: Vec2,
+}
+
+impl Default for FirstPersonController {
+    fn default() -> Self {
+        Self {
+            speed: 0.1,
+            jump_force: 1.0,
+            movement_vec: Vec2::ZERO,
+        }
+    }
+}
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(add_player)
             .add_system(keyboard_event)
-            .add_system(mouse_controls);
+            .add_system(mouse_controls)
+            .add_system(move_player);
     }
 }
 
@@ -23,27 +36,14 @@ fn add_player(mut commands: Commands) {
     //Camera
     commands
         //Use transform bundle instead bc it has global transform. Which is need behind the scenes
-        .spawn(PlayerBundle)
-        .insert(TransformBundle {
-            local: Transform::from_xyz(0.0, 1.0, 0.0),
-            ..Default::default()
-        })
-        .insert(Collider::capsule_y(1.0, 0.5))
-        .insert(KinematicCharacterController {
-            offset: CharacterLength::Absolute(0.05),
-            up: Vec3::Z,
-            autostep: Some(CharacterAutostep {
-                max_height: CharacterLength::Absolute(0.1),
-                min_width: CharacterLength::Absolute(0.3),
-                include_dynamic_bodies: true,
-            }),
-            snap_to_ground: None, // Some(CharacterLength::Absolute(0.05)),
-            apply_impulse_to_dynamic_bodies: true,
-            max_slope_climb_angle: 45.0f32.to_radians(),
-            min_slope_slide_angle: 30.0f32.to_radians(),
-            slide: true,
-            ..Default::default()
-        })
+        .spawn((
+            FirstPersonController::default(),
+            TransformBundle {
+                local: Transform::from_xyz(0.0, 1.0, 0.0),
+                ..Default::default()
+            },
+            Collider::capsule_y(1.0, 0.5),
+        ))
         .with_children(|parent| {
             parent.spawn((
                 Camera3dBundle {
@@ -68,10 +68,7 @@ fn add_player(mut commands: Commands) {
 
 fn keyboard_event(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_transform: Query<
-        (&mut KinematicCharacterController, &Transform),
-        With<PlayerBundle>,
-    >,
+    mut query: Query<(&mut FirstPersonController, &Transform)>,
 ) {
     let mut movement_vec = Vec3::ZERO;
 
@@ -93,23 +90,27 @@ fn keyboard_event(
         movement_vec *= 2.0;
     }
 
-    let mut t = player_transform.single_mut();
-    let rot = t.1.rotation;
-    movement_vec = rot.mul_vec3(movement_vec * -0.1);
+    let mut query = query.single_mut();
+    let rot = query.1.rotation;
+    query.0.movement_vec = rot.mul_vec3(movement_vec * -0.1).xz();
+}
 
-    //Gravity
-    movement_vec.y = -9.8;
+fn move_player(mut query: Query<(&mut RigidBody, &mut FirstPersonController)>) {
+    let query = query.single_mut();
+    let mut controller = query.1;
 
-    info!("Movement vec is {}", movement_vec);
+    if controller.movement_vec.length_squared() == 0.0 {
+        return;
+    }
 
-    t.0.translation = Some(movement_vec);
+    controller.movement_vec = Vec2::ZERO;
 }
 
 fn mouse_controls(
-    mut player_transform: Query<&mut Transform, With<PlayerBundle>>,
+    mut player_transform: Query<&mut Transform, With<FirstPersonController>>,
     //You can have only one mutable reference to a value, so without specifying without it might
     //try to get the player transform, which isn't allowed
-    mut camera: Query<&mut Transform, (With<PlayerCamera>, Without<PlayerBundle>)>,
+    mut camera: Query<&mut Transform, (With<PlayerCamera>, Without<FirstPersonController>)>,
     mut motion: EventReader<MouseMotion>,
 ) {
     if let Some(motion) = motion.iter().collect::<Vec<_>>().first() {
@@ -137,5 +138,4 @@ fn mouse_controls(
         );
         player_transform.rotate_y(rotation.x.to_radians());
     }
-    let c = camera.single();
 }

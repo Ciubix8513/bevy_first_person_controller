@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.10.1"
-bevy_rapier3d = { version = "0.21.0", features = ["simd-stable"] }
+bevy_fps_controller = "0.2.1"
+bevy_rapier3d = { version = "0.21.0", features = ["debug-render-3d"] }
 log = "0.4.19"
 rand = "0.8.5"

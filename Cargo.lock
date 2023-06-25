@@ -473,9 +473,20 @@ name = "bevy_first_person_controller"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_fps_controller",
  "bevy_rapier3d",
  "log",
  "rand",
+]
+
+[[package]]
+name = "bevy_fps_controller"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a3e9e84d5d0145a40ff98f65037049ce6fe48c5f4f05d89bdd12b865999407c"
+dependencies = [
+ "bevy",
+ "bevy_rapier3d",
 ]
 
 [[package]]
@@ -2682,7 +2693,6 @@ dependencies = [
  "parry3d",
  "rustc-hash",
  "simba",
- "vec_map",
 ]
 
 [[package]]
